@@ -18,7 +18,7 @@ defmodule ExUtils.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :poolboy]]
   end
 
   # Dependencies can be Hex packages:
@@ -35,6 +35,7 @@ defmodule ExUtils.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:poolboy, "~> 1.5"},
+     {:redix, "~> 0.4.0"}]
   end
 end
