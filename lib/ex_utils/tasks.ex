@@ -1,4 +1,4 @@
-defmodule Tasks do
+defmodule ExUtils.Tasks do
   defmacro deftask(name, do: block) do
     quote do
       deftask unquote(name), [] do
