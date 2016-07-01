@@ -37,6 +37,8 @@ defmodule ExUtils.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:poolboy, "~> 1.5"},
-     {:redix, "~> 0.4.0"}]
+     {:redix, "~> 0.4.0"},
+     {:ex_json_schema, "~> 0.4.1"},
+     {:poison, "~> 2.2"}]
   end
 end

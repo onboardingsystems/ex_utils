@@ -5,6 +5,7 @@ defmodule ExUtils.Service do
       use GenServer
       import ExUtils.Service
       import Ecto.Query
+      import ExUtils.Schema
 
       def start_link(state, opts \\ []) do
         GenServer.start_link(__MODULE__, state, opts)
