@@ -10,20 +10,6 @@ defmodule ExUtils.Model do
     end
   end
 
-  def errors_to_map(tuples) do
-    Enum.reduce Keyword.keys(tuples), %{}, fn(key, acc) ->
-      Map.put(acc, key, get_value(tuples, key))
-    end
-  end
 
-  defp get_value(tuples, key) do
-    for value <- Keyword.get_values(tuples, key) do
-      case value do
-        #{val1, [count: val2]} -> [val1, "value is #{val2}"]
-        {val1, _} -> val1
-        val -> val
-      end
-    end
-  end
   
 end

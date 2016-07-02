@@ -2,37 +2,66 @@ defmodule ExUtils.Service do
 
   defmacro __using__(_opts) do
     quote do
-      use GenServer
       import ExUtils.Service
       import Ecto.Query
       import ExUtils.Schema
+    end
+  end
 
-      def start_link(state, opts \\ []) do
-        GenServer.start_link(__MODULE__, state, opts)
-      end
+  @doc """
+  Converts a changeset error keyword list to a jsonable map.
+  """
+  def errors_to_map(%{} = envelope), do: errors_to_map envelope.errors
+  def errors_to_map(tuples) do
+    Enum.reduce Keyword.keys(tuples), %{}, fn(key, acc) ->
+      Map.put(acc, key, get_value(tuples, key))
+    end
+  end
 
-      def handle_call({action, message}, from, state) do
-        response = route_call action, message, from
-        {:reply, response, state}
-      end
-
-      defp route_call(action, message, from) do
-        functions = __MODULE__.__info__(:functions)
-
-        case Keyword.get(functions, action) do
-          0 -> apply(__MODULE__, action, [])
-          1 -> apply(__MODULE__, action, [message])
-          _ -> apply(__MODULE__, action, [message, from])
-        end
+  defp get_value(tuples, key) do
+    for value <- Keyword.get_values(tuples, key) do
+      case value do
+        #{val1, [count: val2]} -> [val1, "value is #{val2}"]
+        {val1, _} -> val1
+        val -> val
       end
     end
   end
 
-  def call(module, action, message) do
-    GenServer.call module, {action, message}
+  @doc """
+  Scan through the model structure and remove __meta__ keys from Ecto Models. Converts the struct to a generic Map.
+  """
+  def convert_model_to_map(nil), do: nil
+  def convert_model_to_map(model) do
+    keys = List.delete Map.keys(model), :__meta__
+    keys = List.delete keys, :__struct__
+
+    key_values = for key <- keys do
+      convert_value key, Map.get(model, key)
+    end
+
+    Enum.into key_values, %{}
   end
 
-  def call(module, action) do
-    GenServer.call module, {action, nil}
+  defp convert_value(key, %Ecto.Association.NotLoaded{}), do: {to_string(key), :not_loaded}
+  defp convert_value(key, %Ecto.Time{} = value), do: {to_string(key), value |> Ecto.Time.to_erl |> Time.from_erl!}
+  defp convert_value(key, %Ecto.Date{} = value), do: {to_string(key), value |> Ecto.Date.to_erl |> Date.from_erl!}
+  defp convert_value(key, %Ecto.DateTime{} = value), do: {to_string(key), value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
+  defp convert_value(key, %{} = value), do: {to_string(key), convert_model_to_map(value)}
+  defp convert_value(key, value), do: {to_string(key), value}
+
+  @doc """
+  Fetch a value from a map with an atom or string checking both types of key values.
+  """
+  def value(map, key_or_atom) do
+    if Map.has_key? key_or_atom do
+      map[key_or_atom]
+    else
+      if is_atom key_or_atom do
+        map[String.to_atom(key_or_atom)]
+      else
+        map[Atom.to_string(key_or_atom)]
+      end
+    end
   end
 end
