@@ -43,25 +43,12 @@ defmodule ExUtils.Service do
     Enum.into key_values, %{}
   end
 
-  defp convert_value(key, %Ecto.Association.NotLoaded{}), do: {to_string(key), :not_loaded}
-  defp convert_value(key, %Ecto.Time{} = value), do: {to_string(key), value |> Ecto.Time.to_erl |> Time.from_erl!}
-  defp convert_value(key, %Ecto.Date{} = value), do: {to_string(key), value |> Ecto.Date.to_erl |> Date.from_erl!}
-  defp convert_value(key, %Ecto.DateTime{} = value), do: {to_string(key), value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
-  defp convert_value(key, %{} = value), do: {to_string(key), convert_model_to_map(value)}
-  defp convert_value(key, value), do: {to_string(key), value}
+  defp convert_value(key, %Ecto.Association.NotLoaded{}), do: {key, :not_loaded}
+  defp convert_value(key, %Ecto.Time{} = value), do: {key, value |> Ecto.Time.to_erl |> Time.from_erl!}
+  defp convert_value(key, %Ecto.Date{} = value), do: {key, value |> Ecto.Date.to_erl |> Date.from_erl!}
+  defp convert_value(key, %Ecto.DateTime{} = value), do: {key, value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
+  defp convert_value(key, %{} = value), do: {key, convert_model_to_map(value)}
+  defp convert_value(key, value), do: {key, value}
 
-  @doc """
-  Fetch a value from a map with an atom or string checking both types of key values.
-  """
-  def value(map, key_or_atom) do
-    if Map.has_key? key_or_atom do
-      map[key_or_atom]
-    else
-      if is_atom key_or_atom do
-        map[String.to_atom(key_or_atom)]
-      else
-        map[Atom.to_string(key_or_atom)]
-      end
-    end
-  end
+
 end
