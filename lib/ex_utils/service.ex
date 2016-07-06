@@ -3,7 +3,7 @@ defmodule ExUtils.Service do
   defmacro __using__([repo: repo]) do
     quote do
       import ExUtils.Service
-      import Ecto.Query
+      import Ecto.Query, only: [from: 1, from: 2]
       import ExUtils.Schema
 
       alias unquote(repo), as: Repo
@@ -12,7 +12,7 @@ defmodule ExUtils.Service do
   defmacro __using__(_opts) do
     quote do
       import ExUtils.Service
-      import Ecto.Query
+      import Ecto.Query, only: [from: 1, from: 2]
       import ExUtils.Schema
     end
   end
@@ -57,6 +57,15 @@ defmodule ExUtils.Service do
   defp convert_value(key, %Ecto.Date{} = value), do: {key, value |> Ecto.Date.to_erl |> Date.from_erl!}
   defp convert_value(key, %Ecto.DateTime{} = value), do: {key, value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
   defp convert_value(key, %{} = value), do: {key, convert_model_to_map(value)}
+  defp convert_value(key, [%{} = h | t]) do
+    first = convert_model_to_map(h)
+
+    rest = for entry <- t do
+      convert_model_to_map(entry)
+    end
+
+    {key, [first | rest]}
+  end
   defp convert_value(key, value), do: {key, value}
 
 
