@@ -34,7 +34,7 @@ defmodule ExUtils.Model do
   Scan through the model structure and remove __meta__ keys from Ecto Models. Converts the struct to a generic Map.
   """
   def convert_model_to_map(nil), do: nil
-  def convert_model_to_map(model) do
+  def convert_model_to_map(%{} = model) do
     keys = List.delete Map.keys(model), :__meta__
     keys = List.delete keys, :__struct__
 
@@ -44,6 +44,7 @@ defmodule ExUtils.Model do
 
     Enum.into key_values, %{}
   end
+  def convert_model_to_map(value), do: value
 
   defp convert_value(key, %Ecto.Association.NotLoaded{}), do: {key, :not_loaded}
   defp convert_value(key, %Ecto.Time{} = value), do: {key, value |> Ecto.Time.to_erl |> Time.from_erl!}
