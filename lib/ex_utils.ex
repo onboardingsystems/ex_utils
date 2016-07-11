@@ -19,6 +19,16 @@ defmodule ExUtils do
     Supervisor.start_link(children, opts)
   end
 
+  def call(service_id, parameters) do
+    pid = lookup service_id
+
+    if pid do
+      GenServer.call pid, parameters
+    else
+      {:error, "#{service_id} service not available."}
+    end
+  end
+
   def lookup(service_id) do
     entries = ExUtils.GlobalPresence.list(service_id)
 
