@@ -1,8 +1,8 @@
 defmodule ExUtils.Lookup do
-  def get(presence, service_id) do
-    entries = presence.list(service_id)
+  def get(service_id) do
+    entries = ExUtils.GlobalPresence.list(service_id)
 
-    if entries do
+    if entries |> Map.keys |> length > 0 do
       entries
       |> Map.keys
       |> Enum.take_random(1)
