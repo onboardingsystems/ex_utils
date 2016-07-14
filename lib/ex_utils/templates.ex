@@ -25,7 +25,7 @@ defmodule ExUtils.Templates do
       |> String.replace("/", "_")
       |> String.replace(".", "_")
 
-    name = "render_#{name}"
+    "render_#{name}"
       |> String.to_atom
   end
 
