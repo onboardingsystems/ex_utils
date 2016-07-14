@@ -33,33 +33,34 @@ defmodule ExUtils.Model do
   @doc """
   Scan through the model structure and remove __meta__ keys from Ecto Models. Converts the struct to a generic Map.
   """
-  def convert_model_to_map(nil), do: nil
-  def convert_model_to_map(%{} = model) do
+  def convert_model_to_map(model, convert_ecto \\ true)
+  def convert_model_to_map(nil, _convert_ecto), do: nil
+  def convert_model_to_map(%{} = model, convert_ecto) do
     keys = List.delete Map.keys(model), :__meta__
     keys = List.delete keys, :__struct__
 
     key_values = for key <- keys do
-      convert_value key, Map.get(model, key)
+      convert_value key, Map.get(model, key), convert_ecto
     end
 
     Enum.into key_values, %{}
   end
-  def convert_model_to_map(value), do: value
+  def convert_model_to_map(value, _convert_ecto), do: value
 
-  defp convert_value(key, %Ecto.Association.NotLoaded{}), do: {key, :not_loaded}
-  defp convert_value(key, %Ecto.Time{} = value), do: {key, value |> Ecto.Time.to_erl |> Time.from_erl!}
-  defp convert_value(key, %Ecto.Date{} = value), do: {key, value |> Ecto.Date.to_erl |> Date.from_erl!}
-  defp convert_value(key, %Ecto.DateTime{} = value), do: {key, value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
-  defp convert_value(key, %{} = value), do: {key, convert_model_to_map(value)}
-  defp convert_value(key, [%{} = h | t]) do
-    first = convert_model_to_map(h)
+  defp convert_value(key, %Ecto.Association.NotLoaded{}, true), do: {key, :not_loaded}
+  defp convert_value(key, %Ecto.Time{} = value, true), do: {key, value |> Ecto.Time.to_erl |> Time.from_erl!}
+  defp convert_value(key, %Ecto.Date{} = value, true), do: {key, value |> Ecto.Date.to_erl |> Date.from_erl!}
+  defp convert_value(key, %Ecto.DateTime{} = value, true), do: {key, value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
+  defp convert_value(key, %{} = value, convert_ecto), do: {key, convert_model_to_map(value, convert_ecto)}
+  defp convert_value(key, [%{} = h | t], convert_ecto) do
+    first = convert_model_to_map(h, convert_ecto)
 
     rest = for entry <- t do
-      convert_model_to_map(entry)
+      convert_model_to_map(entry, convert_ecto)
     end
 
     {key, [first | rest]}
   end
-  defp convert_value(key, value), do: {key, value}
+  defp convert_value(key, value, _convert_ecto), do: {key, value}
   
 end
