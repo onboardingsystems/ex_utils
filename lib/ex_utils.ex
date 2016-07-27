@@ -19,11 +19,31 @@ defmodule ExUtils do
     Supervisor.start_link(children, opts)
   end
 
+  @doc """
+  Performs a blocking call to a GenServer with a pid that has been looked
+  up by the service name from Phoenix Presence. Returns the result of 
+  the call.
+  """
   def call(service_id, parameters) do
     pid = lookup service_id
 
     if pid do
       GenServer.call pid, parameters
+    else
+      {:error, "#{service_id} service not available."}
+    end
+  end
+
+  @doc """
+  Performs a asynchrounous call to a GenServer with a pid that has been looked
+  up by the service name from Phoenix Presence. Immediately returns without
+  returning a result.
+  """
+  def cast(service_id, parameters) do
+    pid = lookup service_id
+
+    if pid do
+      GenServer.cast pid, parameters
     else
       {:error, "#{service_id} service not available."}
     end
