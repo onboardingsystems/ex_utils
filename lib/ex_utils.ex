@@ -24,11 +24,11 @@ defmodule ExUtils do
   up by the service name from Phoenix Presence. Returns the result of 
   the call.
   """
-  def call(service_id, parameters) do
+  def call(service_id, parameters, timeout \\ 5_000) do
     pid = lookup service_id
 
     if pid do
-      GenServer.call pid, parameters
+      GenServer.call pid, parameters, timeout
     else
       {:error, "#{service_id} service not available."}
     end
