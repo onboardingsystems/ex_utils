@@ -10,7 +10,7 @@ defmodule ExUtils do
       # Start Phoenix Distributed Elixir PubSub
       supervisor(Phoenix.PubSub.PG2, [ExUtils.GlobalPresence.PubSub, [name: ExUtils.GlobalPresence.PubSub, pool_size: 10]]),
       # Start Phoenix Presence
-      supervisor(ExUtils.GlobalPresence, []),
+      supervisor(ExUtils.GlobalPresence, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
