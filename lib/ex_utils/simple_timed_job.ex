@@ -13,7 +13,7 @@ defmodule ExUtils.SimpleTimedJob do
 
       def start_link do
         value = GenServer.start_link __MODULE__, unquote(function), name: __MODULE__
-        spawn fn -> Sample.execute end
+        spawn fn -> apply(__MODULE__, :execute, []) end
         value
       end
 
