@@ -23,7 +23,7 @@ defmodule ExUtils.Model do
   defp get_value(tuples, key) do
     for value <- Keyword.get_values(tuples, key) do
       case value do
-        #{val1, [count: val2]} -> [val1, "value is #{val2}"]
+        {val1, [count: val2]} -> String.replace(val1, "%{count}", Integer.to_string(val2))
         {val1, _} -> val1
         val -> val
       end
