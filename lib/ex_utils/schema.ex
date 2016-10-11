@@ -10,30 +10,64 @@ defmodule ExUtils.Schema do
     end
   end
 
+  ###
+  ### CONVERT ECTO CHANGESET ERRORS TO MAP
+  ###
+
   @doc """
-  Converts a changeset error keyword list to a jsonable map.
+  Converts a changeset errors to a single map.
   """
+  @spec errors_to_map(List.t) :: Map.t
   def errors_to_map(%{} = envelope), do: errors_to_map envelope.errors
-  def errors_to_map(tuples) do
-    Enum.reduce Keyword.keys(tuples), %{}, fn(key, acc) ->
-      Map.put(acc, key, get_value(tuples, key))
-    end
+  def errors_to_map(tuples), do: append_errors(tuples, %{})
+
+  # Append errors to list of errors.
+  # Takes a prefix to append to the front of the error field name.
+  # Crude errors are errors that have not been appended yet.
+
+  # ## Examples
+  #     iex> Utils.Services.ErrorService.append_errors([{:household_id, {"is missing", []}}], "prefix", %{"field" => ["is invalid"]})
+  #     %{"prefix.household_id" => ["is missing"], "field" => ["is invalid"]}
+  @spec append_errors(List.t, String.t, Map.t) :: Map.t
+  defp append_errors([], _, errors), do: errors
+  defp append_errors([error | tail], prefix, errors) do
+    {field, message} = error
+    message = translate_error(message)
+    append_errors(tail, prefix, Map.merge(errors, %{prefix <> "." <> Atom.to_string(field) => [message]}))
   end
 
-  defp get_value(tuples, key) do
-    for value <- Keyword.get_values(tuples, key) do
-      case value do
-        {val1, [count: val2]} -> String.replace(val1, "%{count}", Integer.to_string(val2))
-        {val1, _} -> val1
-        val -> val
-      end
+  # Append errors to list of errors.
+  # Crude errors are errors that have not been appended yet.
+
+  # ## Examples
+  #     iex> Utils.Services.ErrorService.append_errors([{:household_id, {"is missing", []}}], %{"field" => ["is invalid"]})
+  #     %{"household_id" => ["is missing"], "field" => ["is invalid"]}
+  @spec append_errors(List.t, Map.t) :: Map.t
+  defp append_errors([], errors), do: errors
+  defp append_errors([error | tail], errors) do
+    {field, message} = error
+    message = translate_error(message)
+    append_errors(tail, Map.merge(errors, %{Atom.to_string(field) => [message]}))
+  end
+
+  # Translate ecto changeset errors into human readable. This handles string interpolation
+  
+  # ## Examples
+  #     iex> Utils.Services.ErrorService.translate_error({"can't be blank", []})
+  #     "can't be blank"
+  @spec translate_error(Tuple.t) :: String.t
+  defp translate_error({msg, opts}) do
+    if count = opts[:count] do
+      Gettext.dngettext(ExUtils.Gettext, "errors", msg, msg, count, opts)
+    else
+      Gettext.dgettext(ExUtils.Gettext, "errors", msg, opts)
     end
   end
 
   @doc """
   Converts a changeset and all child changesets to a stuctured map.
   """
-  def interpret_errors(value, name \\ "root", acc \\ %{})
+  def interpret_errors(changeset, name \\ "root", acc \\ %{})
   def interpret_errors(%Ecto.Changeset{changes: changes, errors: errors}, name, acc) do
     error_list = for key <- Map.keys changes do
       interpret_errors changes[key], "#{name}.#{key}", acc
@@ -46,14 +80,7 @@ defmodule ExUtils.Schema do
     acc = Enum.reduce error_list, acc, fn(entry, sub) -> Map.merge sub, entry end
 
     # Process the errors for this level.
-    error_output = errors_to_map errors
-
-    # Filter out this level if no errors are present.
-    if error_output == %{} do
-      acc
-    else
-      Map.merge acc, %{name => error_output}
-    end
+    append_errors errors, name, acc
   end
   def interpret_errors(value, name, acc) when is_list value do
     interpret_errors_from_list value, name, acc
@@ -66,6 +93,10 @@ defmodule ExUtils.Schema do
     error_output = interpret_errors(h, "#{name}[#{index}]", acc)
     interpret_errors_from_list(t, name, error_output, index + 1)
   end  
+
+  ###
+  ### CONVERT SCHEMA AND ECTO VALUES TO ORDINARY EQUIVALENTS
+  ###
 
   @doc """
   Scan through the model structure and remove __meta__ keys from Ecto Models. Converts the struct to a generic Map.
