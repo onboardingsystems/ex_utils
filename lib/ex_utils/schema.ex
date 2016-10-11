@@ -99,7 +99,7 @@ defmodule ExUtils.Schema do
       """
       def unquote(function_validate_name)(changeset) do
         changeset
-        |> Ecto.Changeset.validate_inclusion(unquote(name), unquote(options))
+        |> Ecto.Changeset.validate_inclusion(unquote(name), unquote(options), message: "value must be one of #{inspect unquote(options)}")
       end
     end
 
