@@ -10,6 +10,101 @@ defmodule ExUtils.Schema do
     end
   end
 
+  @doc """
+  Creates boiler plate for handling enum options in an Ecto Schema module.
+
+  ```elixir
+  options :kind, ["future", "current", "previous"], "future"
+  ```
+
+  Generates the following functions:
+
+  * {name}_options - Displays all options
+  * {name}_validate? - Validate that provided value is in is defined as an option.
+  * {name}_default - Returns the default value
+  * validate_{name} - Run an ecto validation to check provided value in params is correct.
+  """
+  defmacro options(name, options, default) do
+    function_options_name = String.to_atom "#{name}_options"
+    function_default_name = String.to_atom "#{name}_default"
+    function_valid_name = String.to_atom "#{name}_valid?"
+    function_validate_name = String.to_atom "validate_#{name}"
+    invalid_option_error = String.to_atom "invalid_#{name}"
+
+    quote do
+      @doc """
+      Returns a list of valid values for #{unquote(name)}.
+
+      Options - #{unquote(inspect options)}
+      """      
+      def unquote(function_options_name)() do
+        unquote(options)
+      end
+
+      @doc """
+      Returns the default value for #{unquote(name)}.
+
+      Default - #{unquote(inspect default)}
+      """  
+      def unquote(function_default_name)() do
+        unquote(default)
+      end
+
+      @doc """
+      Validates if the provided value is valid for #{unquote(name)}.
+
+      Options - #{unquote(inspect options)}
+      """
+      def unquote(function_valid_name)(value)
+      def unquote(function_valid_name)(value) when is_atom value do
+        unquote(function_valid_name)(Atom.to_string(value))
+      end
+      def unquote(function_valid_name)(value) when is_binary value do
+        value in unquote(options)
+      end
+      def unquote(function_valid_name)(_), do: false
+
+      @doc """
+      If atom provided and valid; converts to string. If string provided and valid;
+      converts to Atom.to_string
+
+      Throws an error if the provided value is not valid.
+
+      Options - #{unquote(inspect options)}
+      """
+      def unquote(name)(value) when is_atom value do
+        case unquote(function_valid_name)(value) do
+          true -> Atom.to_string value
+          false -> throw unquote(invalid_option_error)
+        end
+      end
+      def unquote(name)(value) when is_binary value do
+        case unquote(function_valid_name)(value) do
+          true -> String.to_atom value
+          false -> throw unquote(invalid_option_error)
+        end
+      end
+      def unquote(name)(value), do: throw unquote(invalid_option_error)
+
+      @doc """
+      Runs standard Ecto inclusion check for #{unquote(name)}.
+
+      ```elixir
+      options :kind, ["future", "current", "previous"], "future"
+
+      def changeset(model, params) do
+      |> cast(params, [:kind])
+      |> validate_kind
+      ```
+      """
+      def unquote(function_validate_name)(changeset) do
+        changeset
+        |> Ecto.Changeset.validate_inclusion(unquote(name), unquote(options))
+      end
+    end
+
+  end
+
   ###
   ### CONVERT ECTO CHANGESET ERRORS TO MAP
   ###
