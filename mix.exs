@@ -7,6 +7,7 @@ defmodule ExUtils.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     compilers: [:gettext] ++ Mix.compilers,
      deps: deps]
   end
 
@@ -15,7 +16,7 @@ defmodule ExUtils.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [mod: {ExUtils, []},
-     applications: [:logger, :poolboy, :redix, :ex_json_schema, :poison, :cowboy, :phoenix, :phoenix_pubsub, :gettext]]
+     applications: [:logger, :poolboy, :redix, :poison, :cowboy, :phoenix, :phoenix_pubsub, :gettext]]
   end
 
   # Dependencies can be Hex packages:
@@ -34,7 +35,6 @@ defmodule ExUtils.Mixfile do
   defp deps do
     [{:poolboy, "~> 1.5"},
      {:redix, "~> 0.4.0"},
-     {:ex_json_schema, "~> 0.4.1"},
      {:poison, "~> 2.2"},
      {:ecto, "~> 2.0"},
      {:cowboy, "~> 1.0"},
