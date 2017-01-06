@@ -30,7 +30,7 @@ defmodule ExUtils.SimpleTimedJob do
       def execute do
         Process.sleep unquote(wait)
         GenServer.call __MODULE__, :run
-        execute
+        execute()
       end
     end
   end
