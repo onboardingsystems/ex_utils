@@ -1,6 +1,6 @@
 defmodule ExUtils.Redis do
 
-  @docmodule """
+  @moduledoc """
   Setup a pool of Redis Connections (using poolboy)
   """
 
@@ -94,7 +94,7 @@ defmodule ExUtils.Redis do
       ```
       """
       @spec save(String.t, term, integer) :: :ok | {:error, term}
-      def save(key, ttl \\ 604_800, value) do
+      def save(key, value, ttl \\ 604_800) do
         []
         |> set(key, encode_term(value))
         |> expire(key, ttl)
@@ -120,9 +120,9 @@ defmodule ExUtils.Redis do
         Redis.update "key1", 60 "Hello World"
       ```
       """
-      def update(key, ttl \\ nil, value)
-      def update(key, nil, value), do: handle_response set(key, encode_term(value))
-      def update(key, ttl, value), do: save key, ttl, value
+      def update(key, value, ttl \\ nil)
+      def update(key, value, nil), do: handle_response set(key, encode_term(value))
+      def update(key, value, ttl), do: save key, ttl, value
 
       @doc """
       Extend the timeout for a key by the number of seconds provided.
