@@ -38,8 +38,6 @@ defmodule ExUtils.Mixfile do
      {:poison, "~> 2.2"},
      {:ecto, "~> 2.0"},
      {:cowboy, "~> 1.0"},
-     {:phoenix, "~> 1.3.0-rc.1"},
-     {:phoenix_pubsub, "~> 1.0"},
      {:gettext, "~> 0.11"}]
   end
 end
