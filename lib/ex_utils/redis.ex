@@ -12,6 +12,7 @@ defmodule ExUtils.Redis do
 
   defmacro __using__([otp_app: app]) do
     quote do
+      use Supervisor
       @redis_connect_params host: Application.get_env(unquote(app), :redis)[:host]
 
       def start_link do
