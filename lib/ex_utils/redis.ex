@@ -6,7 +6,7 @@ defmodule ExUtils.Redis do
 
   defmacro __using__([opt_app: app]) do
     quote do
-      use ExUtils.Redis, otp_app: unqoute(app)
+      use ExUtils.Redis, otp_app: unquote(app)
     end
   end
 
