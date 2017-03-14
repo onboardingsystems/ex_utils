@@ -6,6 +6,12 @@ defmodule ExUtils.Redis do
 
   defmacro __using__([opt_app: app]) do
     quote do
+      use ExUtils.Redis, otp_app: unqoute(app)
+    end
+  end
+
+  defmacro __using__([otp_app: app]) do
+    quote do
       @redis_connect_params host: Application.get_env(unquote(app), :redis)[:host]
 
       def start_link do
