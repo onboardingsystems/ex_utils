@@ -1,4 +1,4 @@
-defmodule Obs.Service.Plug do
+defmodule Obs.Plug do
   @moduledoc """
   Conveniences for building plugs.
 
@@ -98,14 +98,14 @@ defmodule Obs.Service.Plug do
   @type opts :: binary | tuple | atom | integer | float | [opts] | %{opts => opts}
 
   @callback init(opts) :: opts
-  @callback call(Obs.Service.State.t, opts) :: Obs.Service.State.t
+  @callback call(Obs.State.t, opts) :: Obs.State.t
 
   @type plug :: module | atom
 
   @doc false
   defmacro __using__(opts) do
     quote do
-      @behaviour Obs.Service.Plug
+      @behaviour Obs.Plug
       @plug_builder_opts unquote(opts)
 
       def init(opts) do
@@ -118,11 +118,11 @@ defmodule Obs.Service.Plug do
 
       defoverridable [init: 1, call: 2, call: 1]
 
-      import Obs.Service.State
-      import Obs.Service.Plug, only: [action: 1, action: 2]
+      import Obs.State
+      import Obs.Plug, only: [action: 1, action: 2]
 
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
-      @before_compile Obs.Service.Plug
+      @before_compile Obs.Plug
     end
   end
 
@@ -203,7 +203,6 @@ defmodule Obs.Service.Plug do
 
   # Initializes the options of a plug at compile time.
   defp init_plug({plug, opts, guards}) do
-    IO.inspect guards
     case Atom.to_charlist(plug) do
       ~c"Elixir." ++ _ -> init_module_plug(plug, opts, guards)
       _                -> init_fun_plug(plug, opts, guards)
@@ -231,17 +230,17 @@ defmodule Obs.Service.Plug do
     call = quote_plug_call(plug_type, plug, opts)
 
     error_message = case plug_type do
-      :module   -> "expected #{inspect plug}.call/2 to return a Obs.Service.State{"
-      :function -> "expected #{plug}/2 to return a Obs.Service.State{"
+      :module   -> "expected #{inspect plug}.call/2 to return a Obs.State{"
+      :function -> "expected #{plug}/2 to return a Obs.State{"
     end <> ", all plugs must receive a state and return a state"
 
     {fun, meta, [arg, [do: clauses]]} =
       quote do
         case unquote(compile_guards(call, guards)) do
-          %Obs.Service.State{halted: true} = state ->
+          %Obs.State{halted: true} = state ->
             unquote(log_halt(plug_type, plug, env, builder_opts))
             state
-          %Obs.Service.State{} = state ->
+          %Obs.State{} = state ->
             unquote(acc)
           _ ->
             raise unquote(error_message)
@@ -276,6 +275,7 @@ defmodule Obs.Service.Plug do
 
   defp compile_guards(call, guards) do
     quote do
+      %{function: var!(function)} = state
       case true do
         true when unquote(guards) -> unquote(call)
         true -> state

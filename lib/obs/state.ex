@@ -1,4 +1,4 @@
-defmodule Obs.Service.State do
+defmodule Obs.State do
   @moduledoc """
   Defines a standardized state reference that can be passed through
   composable OBS services.
