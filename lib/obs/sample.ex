@@ -4,7 +4,7 @@ defmodule Obs.Sample do
   """
   use Obs.Service
 
-  action :hello when function in [:_normal]
+  action :hello when params.check == String.to_atom("joe")
   action :next
 
   def hello(state, _opts) do

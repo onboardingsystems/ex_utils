@@ -25,13 +25,18 @@ defmodule Obs.Service do
 
     quote do
       def unquote(public_name)(opts \\ []) do
+        params = Keyword.get opts, :params, %{}
+        meta = Keyword.get opts, :meta, %{}
+
         state = %Obs.State{
-          function: unquote(name)
+          function: unquote(name),
+          params: params,
+          meta: meta
         }
 
         case call state do
-          %Obs.State{halted: true} -> state
-          state -> unquote(name)(state)
+          %Obs.State{halted: true} = updated_state -> updated_state
+          updated_state -> unquote(name)(updated_state)
         end
 
       end

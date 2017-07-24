@@ -275,10 +275,20 @@ defmodule Obs.Plug do
 
   defp compile_guards(call, guards) do
     quote do
-      %{function: var!(function)} = state
+      %{function: var!(function),
+        params: var!(params),
+        meta: var!(meta),
+        assigns: var!(assigns),
+        success: var!(success)} = var!(state) = state
+
+      guard_result = unquote(guards)
+
       case true do
-        true when unquote(guards) -> unquote(call)
+        true when guard_result -> unquote(call)
         true -> state
+        # Line will never be true but fools the Elixir compiler into thinking the fields are used so it will not
+        # put out a warning that there are unused variables.
+        _ -> {var!(function), var!(params), var!(meta), var!(assigns), var!(success), var!(state)}
       end
     end
   end
