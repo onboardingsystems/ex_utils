@@ -4,7 +4,7 @@ defmodule Obs.Sample do
   """
   use Obs.Service
 
-  action :hello when params.check == String.to_atom("joe")
+  action :hello when params[:check] == String.to_atom("joe")
   action :next
 
   def hello(state, _opts) do
@@ -28,9 +28,11 @@ defmodule Obs.Sample do
     respond state, :TA_DA
   end
 
-  # Adds a public function that wrops a private function
-  # with the standard options and enforces calling the
-  # action pipeline.
+  @doc """
+  Do something normal.
+  Comment as normal since this is where the public function
+  will be declared.
+  """
   callable _normal
-  callable _successful
+  callable [_successful]
 end

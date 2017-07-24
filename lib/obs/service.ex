@@ -14,9 +14,21 @@ defmodule Obs.Service do
     end
   end
 
-  defmacro callable(name) do
-    name = elem(name, 0)
+  defmacro callable(name) when is_list name do
+    Enum.map name, fn(entry) ->
+      quote do
+        callable unquote(entry)
+      end
+    end
+  end
+  defmacro callable(name) when is_tuple name do
+    {entry, _, _} = name
 
+    quote do
+      callable unquote(entry)
+    end
+  end
+  defmacro callable(name) when is_atom name do
     public_name =
       name
       |> to_string
@@ -24,8 +36,9 @@ defmodule Obs.Service do
       |> String.to_atom
 
     quote do
-      def unquote(public_name)(opts \\ []) do
-        params = Keyword.get opts, :params, %{}
+      @spec unquote(public_name)(Keyword.t, Keyword.t) :: Obs.State.t
+      def unquote(public_name)(params \\ [], opts \\ []) do
+        params = Enum.into params, %{}
         meta = Keyword.get opts, :meta, %{}
 
         state = %Obs.State{
