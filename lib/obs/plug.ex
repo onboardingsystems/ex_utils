@@ -119,7 +119,7 @@ defmodule Obs.Plug do
       defoverridable [init: 1, call: 2, call: 1]
 
       import Obs.State
-      import Obs.Plug, only: [action: 1, action: 2]
+      import Obs.Plug, only: [pre_action: 1, pre_action: 2]
 
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
       @before_compile Obs.Plug
@@ -151,21 +151,21 @@ defmodule Obs.Plug do
       plug :foo, some_options: true  # plug function
 
   """
-  defmacro action(plug)
+  defmacro pre_action(plug)
 
-  defmacro action({:when, _, [plug, guards]}), do: plug(plug, [], guards)
+  defmacro pre_action({:when, _, [plug, guards]}), do: plug(plug, [], guards)
 
-  defmacro action(plug), do: plug(plug, [], true)
+  defmacro pre_action(plug), do: plug(plug, [], true)
 
   @doc """
   Stores a plug with the given options to be executed as part of
   the plug pipeline.
   """
-  defmacro action(plug, opts)
+  defmacro pre_action(plug, opts)
 
-  defmacro action(plug, {:when, _, [opts, guards]}), do: plug(plug, opts, guards)
+  defmacro pre_action(plug, {:when, _, [opts, guards]}), do: plug(plug, opts, guards)
 
-  defmacro action(plug, opts), do: plug(plug, opts, true)
+  defmacro pre_action(plug, opts), do: plug(plug, opts, true)
 
   defp plug(plug, opts, guards) do
     quote do

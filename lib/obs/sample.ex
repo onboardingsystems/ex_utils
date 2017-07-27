@@ -4,8 +4,8 @@ defmodule Obs.Sample do
   """
   use Obs.Service
 
-  action :hello when params[:check] == String.to_atom("joe")
-  action :next
+  pre_action :hello when params[:check] == String.to_atom("joe")
+  pre_action :next
 
   def hello(state, _opts) do
     state
