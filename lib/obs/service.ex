@@ -29,10 +29,11 @@ defmodule Obs.Service do
     end
   end
   defmacro callable(name) when is_atom name do
+    s_name = to_string(name)
+
     public_name =
-      if String.starts_with?(name, "_") do
-        name
-        |> to_string
+      if String.starts_with?(s_name, "_") do
+        s_name
         |> String.replace_prefix("_", "")
         |> String.to_atom
       else
