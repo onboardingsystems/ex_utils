@@ -30,10 +30,14 @@ defmodule Obs.Service do
   end
   defmacro callable(name) when is_atom name do
     public_name =
-      name
-      |> to_string
-      |> String.replace("_", "")
-      |> String.to_atom
+      if String.starts_with?(name, "_") do
+        name
+        |> to_string
+        |> String.replace_prefix("_", "")
+        |> String.to_atom
+      else
+        name
+      end
 
     quote do
       @spec unquote(public_name)(Keyword.t, Keyword.t) :: Obs.State.t
