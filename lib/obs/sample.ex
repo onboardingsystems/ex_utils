@@ -23,7 +23,7 @@ defmodule Obs.Sample do
     respond state, :TA_DA
   end
 
-  defp _successful(state) do
+  defp _success(state) do
     IO.inspect "Ran successful"
     respond state, :TA_DA
   end
@@ -34,5 +34,5 @@ defmodule Obs.Sample do
   will be declared.
   """
   callable _normal
-  callable [_successful]
+  callable [_success]
 end

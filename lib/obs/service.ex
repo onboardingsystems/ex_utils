@@ -41,6 +41,14 @@ defmodule Obs.Service do
       end
 
     quote do
+      @spec unquote(public_name)(Obs.State.t) :: Obs.State.t
+      def unquote(public_name)(%Obs.State{} = state) do
+        case call state do
+          %Obs.State{halted: true} = updated_state -> updated_state
+          updated_state -> unquote(name)(updated_state)
+        end
+      end
+
       @spec unquote(public_name)(Keyword.t, Keyword.t) :: Obs.State.t
       def unquote(public_name)(params \\ [], opts \\ []) do
         params = Enum.into params, %{}
@@ -52,11 +60,7 @@ defmodule Obs.Service do
           meta: meta
         }
 
-        case call state do
-          %Obs.State{halted: true} = updated_state -> updated_state
-          updated_state -> unquote(name)(updated_state)
-        end
-
+        unquote(public_name)(state)
       end
     end
   end
