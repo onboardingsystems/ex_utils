@@ -10,57 +10,76 @@ defmodule Obs.Service do
     quote do
       use Obs.Plug
 
-      import Obs.Service, only: [callable: 1]
-    end
-  end
+      import Obs.Service, only: [plug_in: 1]
 
-  defmacro callable(name) when is_list name do
-    Enum.map name, fn(entry) ->
-      quote do
-        callable unquote(entry)
+      if Code.ensure_compiled? Ecto.Changeset do
+        import Ecto.Changeset
+      end
+
+      def perform(%Obs.State{} = state, action) when is_atom action do
+        state
+        |> Map.put(:action, action)
+        |> perform
+      end
+
+      def perform(%Obs.State{action: action} = state) do
+        case call state do
+          %Obs.State{halted: true} = updated_state -> updated_state
+          updated_state -> apply(__MODULE__, action, updated_state)
+        end
+      end
+      def perform(action, params) when is_atom action and is_list params do
+        params = Enum.into params, %{}
+
+        state = %Obs.State{
+          action: action,
+          params: params
+        }
+
+        perform state
       end
     end
   end
-  defmacro callable(name) when is_tuple name do
+
+  defmacro plug_in(name) when is_list name do
+    Enum.map name, fn(entry) ->
+      quote do
+        plug_in unquote(entry)
+      end
+    end
+  end
+  defmacro plug_in(name) when is_tuple name do
     {entry, _, _} = name
 
     quote do
-      callable unquote(entry)
+      plugin unquote(entry)
     end
   end
-  defmacro callable(name) when is_atom name do
-    s_name = to_string(name)
-
-    public_name =
-      if String.starts_with?(s_name, "_") do
-        s_name
-        |> String.replace_prefix("_", "")
-        |> String.to_atom
-      else
-        name
-      end
+  defmacro plug_in(name) when is_atom name do
+    listing = Keyword.put [], name, 1
 
     quote do
-      @spec unquote(public_name)(Obs.State.t) :: Obs.State.t
-      def unquote(public_name)(%Obs.State{} = state) do
+      defoverridable unquote(listing)
+
+      def unquote(name)(params \\ [])
+      @spec unquote(name)(Obs.State.t) :: Obs.State.t
+      def unquote(name)(%Obs.State{} = state) do
+        state = Map.put state, :action, unquote(name)
+
         case call state do
           %Obs.State{halted: true} = updated_state -> updated_state
-          updated_state -> unquote(name)(updated_state)
+          updated_state -> super(updated_state)
         end
       end
-
-      @spec unquote(public_name)(Keyword.t, Keyword.t) :: Obs.State.t
-      def unquote(public_name)(params \\ [], opts \\ []) do
+      @spec unquote(name)(Keyword.t) :: Obs.State.t
+      def unquote(name)(params) do
         params = Enum.into params, %{}
-        meta = Keyword.get opts, :meta, %{}
 
         state = %Obs.State{
-          function: unquote(name),
           params: params,
-          meta: meta
         }
 
-        unquote(public_name)(state)
+        unquote(name)(state)
       end
     end
   end

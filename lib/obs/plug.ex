@@ -119,7 +119,7 @@ defmodule Obs.Plug do
       defoverridable [init: 1, call: 2, call: 1]
 
       import Obs.State
-      import Obs.Plug, only: [pre_action: 1, pre_action: 2]
+      import Obs.Plug, only: [plug: 1, plug: 2]
 
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
       @before_compile Obs.Plug
@@ -151,21 +151,21 @@ defmodule Obs.Plug do
       plug :foo, some_options: true  # plug function
 
   """
-  defmacro pre_action(plug)
+  defmacro plug(plug)
 
-  defmacro pre_action({:when, _, [plug, guards]}), do: plug(plug, [], guards)
+  defmacro plug({:when, _, [plug, guards]}), do: plug(plug, [], guards)
 
-  defmacro pre_action(plug), do: plug(plug, [], true)
+  defmacro plug(plug), do: plug(plug, [], true)
 
   @doc """
   Stores a plug with the given options to be executed as part of
   the plug pipeline.
   """
-  defmacro pre_action(plug, opts)
+  defmacro plug(plug, opts)
 
-  defmacro pre_action(plug, {:when, _, [opts, guards]}), do: plug(plug, opts, guards)
+  defmacro plug(plug, {:when, _, [opts, guards]}), do: plug(plug, opts, guards)
 
-  defmacro pre_action(plug, opts), do: plug(plug, opts, true)
+  defmacro plug(plug, opts), do: plug(plug, opts, true)
 
   defp plug(plug, opts, guards) do
     quote do
@@ -275,11 +275,9 @@ defmodule Obs.Plug do
 
   defp compile_guards(call, guards) do
     quote do
-      %{function: var!(function),
+      %{action: var!(action),
         params: var!(params),
-        meta: var!(meta),
-        assigns: var!(assigns),
-        success: var!(success)} = var!(state) = state
+        assigns: var!(assigns)} = var!(state) = state
 
       guard_result = unquote(guards)
 
@@ -288,7 +286,7 @@ defmodule Obs.Plug do
         true -> state
         # Line will never be true but fools the Elixir compiler into thinking the fields are used so it will not
         # put out a warning that there are unused variables.
-        _ -> {var!(function), var!(params), var!(meta), var!(assigns), var!(success), var!(state)}
+        _ -> {var!(action), var!(params), var!(assigns), var!(state)}
       end
     end
   end

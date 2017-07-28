@@ -5,30 +5,23 @@ defmodule Obs.State do
   """
 
   @type assigns            :: %{atom => any}
-  @type before_respond     :: [(t -> t)]
 
   @type t :: %__MODULE__{
-    function: (t -> t),
-    before_respond: before_respond,
+    action: (t -> t),
     assigns: assigns,
     params: assigns,
     private: assigns,
-    meta: assigns,
-    success: boolean,
-    response: any,
-    errors: any,
+    has_errors: boolean,
+    errors: assigns,
     halted: boolean
   }
 
-  defstruct function: nil,
-            before_respond: [],
+  defstruct action: nil,
             assigns: %{},
             params: %{},
             private: %{},
-            meta: %{},
-            success: false,
-            response: nil,
-            errors: [],
+            has_errors: false,
+            errors: %{},
             halted: false
 
   @doc """
@@ -78,20 +71,6 @@ defmodule Obs.State do
   end
 
   @doc """
-  Assigns a value to a meta in the state
-  ## Examples
-      iex> state.meta[:hello]
-      nil
-      iex> state = put_meta(state, :hello, :world)
-      iex> state.meta[:hello]
-      :world
-  """
-  @spec put_meta(t, atom, term) :: t
-  def put_meta(%__MODULE__{meta: meta} = state, key, value) when is_atom(key) do
-    %{state | meta: Map.put(meta, key, value)}
-  end
-
-  @doc """
   Halts the Service pipeline by preventing further plugs downstream from being
   invoked.
   """
@@ -100,53 +79,7 @@ defmodule Obs.State do
     %{state | halted: true}
   end
 
-  @spec failed(t) :: t
-  def failed(%__MODULE__{} = state) do
-    %{state | success: false}
-  end
-
-  @spec successful(t) :: t
-  def successful(%__MODULE__{} = state) do
-    %{state | success: true}
-  end
-
-  @spec respond(t, any, Keyword.t) :: t
-  def respond(%__MODULE__{} = state, response, opts \\ []) do
-    success = Keyword.get opts, :success, true
-    halt = Keyword.get opts, :halt, false
-
-    state =
-      state
-      |> Map.put(:success, success)
-      |> Map.put(:response, response)
-      |> run_before_respond
-
-    if halt do
-      halt state
-    else
-      state
-    end
-  end
-
-  def error(%__MODULE__{} = state, response, opts \\ []) do
-    halt = Keyword.get opts, :halt, true
-    opts = Keyword.put opts, :halt, halt
-    opts = Keyword.put opts, :success, false
-
-    respond state, response, opts
-  end
-
-  @doc """
-  Registers a callback to be invoked before the response is sent.
-  Callbacks are invoked in the reverse order they are defined (callbacks
-  defined first are invoked last).
-  """
-  @spec register_before_respond(t, (t -> t)) :: t
-  def register_before_respond(%__MODULE__{before_respond: before_respond} = state, callback) when is_function(callback, 1) do
-    %{state | before_respond: [callback | before_respond]}
-  end
-
-  defp run_before_respond(%__MODULE__{before_respond: before_respond} = state) do
-    Enum.reduce before_respond, state, &(&1.(&2))
+  def error(%__MODULE__{errors: errors} = state, key, value) do
+    %{state | errors: Map.put(errors, key, value), has_errors: true}
   end
 end
