@@ -101,7 +101,12 @@ defmodule Obs.State do
       case state do
         %{has_errors: true, errors: errors} -> {:error, errors}
         %{assigns: %{response: state_response}} -> {:ok, state_response}
-        _ -> {:ok, response}
+        _ ->
+          if response do
+            {:ok, response}
+          else
+            :ok
+          end
       end
     end
   end
