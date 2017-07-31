@@ -12,7 +12,7 @@ defmodule Obs.State do
     params: assigns,
     private: assigns,
     has_errors: boolean,
-    errors: assigns,
+    errors: List.t,
     halted: boolean
   }
 
@@ -21,7 +21,7 @@ defmodule Obs.State do
             params: %{},
             private: %{},
             has_errors: false,
-            errors: %{},
+            errors: [],
             halted: false
 
   @doc """
@@ -79,7 +79,26 @@ defmodule Obs.State do
     %{state | halted: true}
   end
 
-  def error(%__MODULE__{errors: errors} = state, key, value) do
-    %{state | errors: Map.put(errors, key, value), has_errors: true}
+  def error(%__MODULE__{errors: errors} = state, value) do
+    %{state | errors: Enum.concat(errors, [value]), has_errors: true}
+  end
+
+  @doc """
+  Adds the ability to return a normal tuple style response
+  based upon a Obs.State struct.
+
+  The state must have a :response entry in its :assigns or something
+  in the errors section.
+  """
+  def response(%Obs.State{params: params} = state, response \\ nil) do
+    if params[:state] do
+      state
+    else
+      case state do
+        %{has_errors: true, errors: errors} -> {:error, errors}
+        %{assigns: %{response: state_response}} -> {:ok, state_response}
+        _ -> {:ok, response}
+      end
+    end
   end
 end
