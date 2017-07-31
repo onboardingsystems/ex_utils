@@ -92,7 +92,11 @@ defmodule Obs.State do
   """
   def response(%Obs.State{params: params} = state, response \\ nil) do
     if params[:state] do
-      state
+      if response do
+        assign state, :response, response
+      else
+        state
+      end
     else
       case state do
         %{has_errors: true, errors: errors} -> {:error, errors}
