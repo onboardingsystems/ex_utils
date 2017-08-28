@@ -5,6 +5,9 @@ defmodule ExUtils.Redis do
   """
 
   defmacro __using__([opt_app: app]) do
+    # originally mispelled otp_app to opt_app, this function creates
+    # a shim to allow existing older projects to not have to be changed immediately
+    # such as Pay, when the deependency is updated the name will need to be corrected.
     quote do
       use ExUtils.Redis, otp_app: unquote(app)
     end
