@@ -102,10 +102,10 @@ defmodule Obs.State do
         %{has_errors: true, errors: errors} -> {:error, errors}
         %{assigns: %{response: state_response}} -> {:ok, state_response}
         _ ->
-          if response do
-            {:ok, response}
-          else
+          if is_nil(response) do
             :ok
+          else
+            {:ok, response}
           end
       end
     end
