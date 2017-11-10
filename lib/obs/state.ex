@@ -90,7 +90,7 @@ defmodule Obs.State do
   The state must have a :response entry in its :assigns or something
   in the errors section.
   """
-  def response(%Obs.State{params: params} = state, response \\ nil) do
+  def response(%Obs.State{params: params} = state, response \\ :__no_response__) do
     if params[:state] do
       if response do
         assign state, :response, response
@@ -102,7 +102,7 @@ defmodule Obs.State do
         %{has_errors: true, errors: errors} -> {:error, errors}
         %{assigns: %{response: state_response}} -> {:ok, state_response}
         _ ->
-          if is_nil(response) do
+          if response == :__no_response__ do
             :ok
           else
             {:ok, response}
