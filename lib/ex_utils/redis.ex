@@ -16,7 +16,7 @@ defmodule ExUtils.Redis do
   defmacro __using__([otp_app: app]) do
     quote do
       use Supervisor
-      @redis_connect_params Application.get_env(unquote(app), :redis)
+      @app_name unquote(app)
 
       def start_link do
         Supervisor.start_link __MODULE__, []
@@ -31,7 +31,7 @@ defmodule ExUtils.Redis do
         ]
 
         children = [
-          :poolboy.child_spec(:redix_pool, pools_opts, @redis_connect_params)
+          :poolboy.child_spec(:redix_pool, pools_opts, Application.get_env(@app_name, :redis))
         ]
 
         supervise(children, strategy: :one_for_one, name: __MODULE__)
