@@ -34,7 +34,7 @@ defmodule ExUtils.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:poolboy, "~> 1.5"},
-     {:redix, "~> 0.5"},
+     {:redix, ">= 0.0.0"},
      {:poison, "~> 2.2"},
      {:ecto, "~> 2.0"},
      {:cowboy, "~> 1.0"},
