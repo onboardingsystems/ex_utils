@@ -36,7 +36,7 @@ defmodule ExUtils.Schema do
       Returns a list of valid values for #{unquote(name)}.
 
       Options - #{unquote(inspect options)}
-      """      
+      """
       def unquote(function_options_name)() do
         unquote(options)
       end
@@ -45,7 +45,7 @@ defmodule ExUtils.Schema do
       Returns the default value for #{unquote(name)}.
 
       Default - #{unquote(inspect default)}
-      """  
+      """
       def unquote(function_default_name)() do
         unquote(default)
       end
@@ -146,7 +146,7 @@ defmodule ExUtils.Schema do
   end
 
   # Translate ecto changeset errors into human readable. This handles string interpolation
-  
+
   # ## Examples
   #     iex> Utils.Services.ErrorService.translate_error({"can't be blank", []})
   #     "can't be blank"
@@ -187,7 +187,7 @@ defmodule ExUtils.Schema do
   defp interpret_errors_from_list([h | t], name, acc, index) do
     error_output = interpret_errors(h, "#{name}[#{index}]", acc)
     interpret_errors_from_list(t, name, error_output, index + 1)
-  end  
+  end
 
   ###
   ### CONVERT SCHEMA AND ECTO VALUES TO ORDINARY EQUIVALENTS
@@ -211,9 +211,9 @@ defmodule ExUtils.Schema do
   def convert_model_to_map(value, _convert_ecto), do: value
 
   defp convert_value(key, %Ecto.Association.NotLoaded{}, true), do: {key, :not_loaded}
-  defp convert_value(key, %Ecto.Time{} = value, true), do: {key, value |> Ecto.Time.to_erl |> Time.from_erl!}
-  defp convert_value(key, %Ecto.Date{} = value, true), do: {key, value |> Ecto.Date.to_erl |> Date.from_erl!}
-  defp convert_value(key, %Ecto.DateTime{} = value, true), do: {key, value |> Ecto.DateTime.to_erl |> NaiveDateTime.from_erl!}
+  # defp convert_value(key, %Time{} = value, true), do: {key, value |> Time.to_erl |> Time.from_erl!}
+  # defp convert_value(key, %Date{} = value, true), do: {key, value |> Date.to_erl |> Date.from_erl!}
+  # defp convert_value(key, %DateTime{} = value, true), do: {key, value |> DateTime.to_erl |> NaiveDateTime.from_erl!}
   defp convert_value(key, %{} = value, convert_ecto), do: {key, convert_model_to_map(value, convert_ecto)}
   defp convert_value(key, [%{} = h | t], convert_ecto) do
     first = convert_model_to_map(h, convert_ecto)
@@ -225,5 +225,5 @@ defmodule ExUtils.Schema do
     {key, [first | rest]}
   end
   defp convert_value(key, value, _convert_ecto), do: {key, value}
-  
+
 end
