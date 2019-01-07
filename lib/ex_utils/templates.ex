@@ -1,7 +1,7 @@
 defmodule ExUtils.Templates do
   @moduledoc """
   ```
-  defmodule Sample do
+  defmodule Sample do
     use ExUtils.Templates
 
     template "relative_path/specific_file.eex"

@@ -1,4 +1,6 @@
 defmodule ExUtils.Schema do
+  @moduledoc false
+
   defmacro __using__(_opts) do
     quote do
       use Ecto.Schema
@@ -211,9 +213,6 @@ defmodule ExUtils.Schema do
   def convert_model_to_map(value, _convert_ecto), do: value
 
   defp convert_value(key, %Ecto.Association.NotLoaded{}, true), do: {key, :not_loaded}
-  # defp convert_value(key, %Time{} = value, true), do: {key, value |> Time.to_erl |> Time.from_erl!}
-  # defp convert_value(key, %Date{} = value, true), do: {key, value |> Date.to_erl |> Date.from_erl!}
-  # defp convert_value(key, %DateTime{} = value, true), do: {key, value |> DateTime.to_erl |> NaiveDateTime.from_erl!}
   defp convert_value(key, %{} = value, convert_ecto), do: {key, convert_model_to_map(value, convert_ecto)}
   defp convert_value(key, [%{} = h | t], convert_ecto) do
     first = convert_model_to_map(h, convert_ecto)
