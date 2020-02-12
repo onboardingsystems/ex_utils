@@ -37,7 +37,7 @@ defmodule ExUtils.Mixfile do
      {:redix, ">= 0.0.0"},
      {:poison, "~> 2.2"},
      {:ecto, "~> 3.0"},
-     {:cowboy, "~> 1.0"},
+     {:cowboy, "~> 1.0 or ~> 2.0"},
      {:gettext, "~> 0.11"}]
   end
 end
