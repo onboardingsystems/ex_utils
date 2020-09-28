@@ -2,7 +2,7 @@ defmodule ExUtils.Test.Dataizer do
   use GenServer
 
   @moduledoc """
-  Because eveything osunds cooler with "izer" appended to the end of it.
+  Because everything sounds cooler with "-izer" appended to the end of it.
   """
 
   def start(repo) do
@@ -12,6 +12,10 @@ defmodule ExUtils.Test.Dataizer do
   def stop do
     pid = Process.whereis __MODULE__
     Process.exit pid, :normal
+  end
+
+  def init(args) do
+    {:ok, args}
   end
 
   def handle_call({:insert, module, function, override}, _from, state) do
@@ -53,20 +57,20 @@ defmodule ExUtils.Test.Dataizer do
   Passing the Ecto Schema map directly as the first parameter:
 
   ```elixir
-    insert %MyRecord{field: "value", other: nil}, other: "overriden_value" 
+    insert %MyRecord{field: "value", other: nil}, other: "overridden_value"
   ```
 
   Passing a Module and Function name:
 
   ```elixir
-    insert {MyApp.MyModule, :function_call}, other: "overriden_value"
+    insert {MyApp.MyModule, :function_call}, other: "overridden_value"
   ```
 
   Passing a direct function reference or anonymous function:
 
   ```elixir
-    insert &MyApp.MyModule.function_call/0, other: "overriden_value"
-    insert fn -> %MyRecord{field: "value"} end, other: "overriden_value"
+    insert &MyApp.MyModule.function_call/0, other: "overridden_value"
+    insert fn -> %MyRecord{field: "value"} end, other: "overridden_value"
   ```
   """
   def insert(ref, override \\ nil)
