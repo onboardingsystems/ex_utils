@@ -36,7 +36,7 @@ defmodule ExUtils.Mixfile do
     [{:poolboy, "~> 1.5"},
      {:redix, ">= 0.0.0"},
      {:poison, "~> 2.2"},
-     {:ecto, "~> 3.0"},
+     {:ecto, "~> 3.0", optional: true},
      {:cowboy, "~> 1.0 or ~> 2.0"},
      {:gettext, "~> 0.11"}]
   end
